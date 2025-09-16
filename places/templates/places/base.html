@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Мої улюблені місця{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <h1><a href="{% url 'places:index' %}">Мої улюблені місця</a></h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{% url 'places:index' %}">Головна</a></li>
+                <li><a href="{% url 'places:places_list' %}">Список місць</a></li>
+                <li><a href="{% url 'places:add_place' %}">Додати місце</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Створено [Ваше ім'я] для лабораторної роботи з Django</p>
+    </footer>
+
+    <script>
+        function getRandomPlace() {
+            fetch('{% url "places:random_place" %}', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const container = document.getElementById('random-place-result');
+                    const starsHtml = '★'.repeat(data.place.rating) + '☆'.repeat(5 - data.place.rating);
+
+                    container.innerHTML = `
+                        <div class="place-preview selected-place">
+                            <h3>${data.place.name}</h3>
+                            <p><strong>Тип:</strong> ${data.place.place_type}</p>
+                            <p><strong>Локація:</strong> ${data.place.location || 'Secret place👀'}</p>
+                            <p><strong>Рейтинг:</strong> <span class="stars">${starsHtml}</span></p>
+                            <p><strong>Опис:</strong> ${data.place.description.substring(0, 100)}${data.place.description.length > 100 ? '...' : ''}</p>
+                            <a href="/place/${data.place.id}/" class="btn-link">Детальніше</a>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('random-place-result').innerHTML =
+                        `<p class="error">${data.error}</p>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('random-place-result').innerHTML =
+                    '<p class="error">Помилка при завантаженні</p>';
+            });
+        }
+    </script>
+</body>
+</html>
